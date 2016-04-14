@@ -15,12 +15,19 @@ print sq_width, sq_height
 
 surface = pygame.display.set_mode(size)
 
+# load image
+launcher = pygame.image.load("img/launcher-left.png")
+
 clock = pygame.time.Clock()
 
 while True:
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
+    # event
+    for ev in pygame.event.get():
+        if ev.type == pygame.QUIT:
             sys.exit()
+        elif ev.type == pygame.MOUSEBUTTONDOWN:
+            click_pos = ev.dict['pos']
+            print click_pos
 
     # main drawing
     for row in range(n):           # Draw each row of the board.
@@ -30,5 +37,8 @@ while True:
             surface.fill(colors[c_indx], the_square)
             # now flip the color index for the next square
             c_indx = (c_indx + 1) % 2
+    # load images
+    for i in range(8):
+        surface.blit(launcher, (0, 80 * i))
     pygame.display.flip()
     clock.tick(40)
