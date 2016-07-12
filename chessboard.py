@@ -34,5 +34,8 @@ class ChessBoard:
             raise ValueError
         self._board = board
 
+    def get(self, col, row):
+        return self._board[col][row]
+
     def size(self):
         return (self._col, self._row)

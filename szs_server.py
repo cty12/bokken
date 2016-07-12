@@ -25,7 +25,7 @@ class SzsServer(MastermindServerTCP):
         return super(SzsServer, self).callback_client_receive(connection_object)
 
     def callback_client_handle(self, connection_object, data):
-        print data['col'], data['row']
+        print 'col: ', data['col'], 'row: ', data['row']
         self.callback_client_send(connection_object, "received")
 
     def callback_client_send(self, connection_object, data, compression=None):
@@ -44,4 +44,3 @@ if __name__ == '__main__':
     server.accepting_disallow()
     server.disconnect_clients()
     server.disconnect()
-

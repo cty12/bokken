@@ -9,7 +9,7 @@ from icons import icons
 def set_up():
     global cb, sq
     # set up chess board
-    cb = ChessBoard(8, 8)
+    cb = ChessBoard(8, 10)
     # the size of a square in px
     sq = 80
 
@@ -19,8 +19,13 @@ def set_up():
     global cb_color, surface, launcher_up, farmer, clock
     cb_color = [red, black]
     surface = pygame.display.set_mode([sq * x for x in cb.size()])
+    # load icons here
     launcher_up = pygame.image.load(icons['launcher-up'])
+    launcher_down = pygame.image.load(icons['launcher-down'])
+    launcher_left = pygame.image.load(icons['launcher-left'])
+    launcher_right = pygame.image.load(icons['launcher-right'])
     farmer = pygame.image.load(icons['farmer'])
+    keymaker = pygame.image.load(icons['keymaker'])
     clock = pygame.time.Clock()
 
 # def draw_board():
@@ -42,11 +47,55 @@ def main():
         print "server connection error! "
         return
 
-    data = dict()
-    data['col'] = 24
-    data['row'] = 42
-    client.send(data)
-    client.disconnect()
+    # try sending some data
+    # data = dict()
+    # data['col'] = 24
+    # data['row'] = 42
+    # client.send(data)
+    # client.disconnect()
+
+    # main ui loop
+    while True:
+        # handle event
+        for ev in pygame.event.get():
+            if ev.type == pygame.QUIT:
+                client.disconnect()
+                print 'client disconnected! '
+                sys.exit()
+            if ev.type == pygame.MOUSEBUTTONDOWN:
+                pos = ev.dict['pos']
+                pos_col = int(pos[0]) / int(sq)
+                pos_row = int(pos[1]) / int(sq)
+                print 'col: ', pos_col, 'row: ', pos_row
+                data = {}
+                data['col'] = pos_col
+                data['row'] = pos_row
+                client.send(data)
+
+        # draw chessboard
+        for col in range(cb.size()[0]):
+            flip_indx = col % 2
+            for row in range(cb.size()[1]):
+                # fill the square
+                the_square = (col * sq, row * sq, sq, sq)
+                surface.fill(cb_color[flip_indx], the_square)
+                flip_indx = (flip_indx + 1) % 2
+                # load icons
+                icon = cb.get(col=col, row=row)
+                if icon == 'farmer':
+                    surface.blit(farmer, (sq * col, sq * row))
+                elif icon == 'keymaker':
+                    surface.blit(keymaker, (sq * col, sq * row))
+                elif icon == 'launcher-up':
+                    surface.blit(launcher_up, (sq * col, sq * row))
+                elif icon == 'launcher-down':
+                    surface.blit(launcher_down, (sq * col, sq * row))
+                elif icon == 'launcher-left':
+                    surface.blit(launcher_left, (sq * col, sq * row))
+                elif icon == 'launcher-right':
+                    surface.blit(launcher_right, (sq * col, sq * row))
+        pygame.display.flip()
+        clock.tick(40)
 
 if __name__ == '__main__':
     main()
