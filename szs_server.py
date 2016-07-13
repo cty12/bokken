@@ -25,8 +25,13 @@ class SzsServer(MastermindServerTCP):
         return super(SzsServer, self).callback_client_receive(connection_object)
 
     def callback_client_handle(self, connection_object, data):
-        print 'col: ', data['col'], 'row: ', data['row']
-        self.callback_client_send(connection_object, "received")
+        if data[0] == 'heartbeat':
+            # handle heartbeat message
+            pass
+        elif data[0] == 'update':
+            # update chessboard
+            print 'col: ', data[1]['col'], 'row: ', data[1]['row']
+            self.callback_client_send(connection_object, {'col': data[1]['col'], 'row': data[1]['row']})
 
     def callback_client_send(self, connection_object, data, compression=None):
         return super(SzsServer, self).callback_client_send(connection_object, data, compression)

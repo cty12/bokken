@@ -28,7 +28,9 @@ def set_up():
     keymaker = pygame.image.load(icons['keymaker'])
     clock = pygame.time.Clock()
 
-# def draw_board():
+def construct_msg(head='heartbeat', body=None):
+    # may add a timestamp here
+    return (head, body)
 
 def main():
     # init
@@ -47,13 +49,6 @@ def main():
         print "server connection error! "
         return
 
-    # try sending some data
-    # data = dict()
-    # data['col'] = 24
-    # data['row'] = 42
-    # client.send(data)
-    # client.disconnect()
-
     # main ui loop
     while True:
         # handle event
@@ -67,10 +62,14 @@ def main():
                 pos_col = int(pos[0]) / int(sq)
                 pos_row = int(pos[1]) / int(sq)
                 print 'col: ', pos_col, 'row: ', pos_row
-                data = {}
-                data['col'] = pos_col
-                data['row'] = pos_row
-                client.send(data)
+                # send chessboard update message to server
+                client.send(construct_msg('update', {'col': pos_col, 'row': pos_row}))
+                # this is a blocking operation
+                echo = client.receive(True)
+                print 'echo col: ', echo['col'], 'row: ', echo['row']
+
+        # send keep alive message to the server
+        client.send(construct_msg('heartbeat'))
 
         # draw chessboard
         for col in range(cb.size()[0]):
@@ -95,7 +94,7 @@ def main():
                 elif icon == 'launcher-right':
                     surface.blit(launcher_right, (sq * col, sq * row))
         pygame.display.flip()
-        clock.tick(40)
+        clock.tick(30)
 
 if __name__ == '__main__':
     main()
