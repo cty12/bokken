@@ -64,10 +64,11 @@ def main():
                 print 'col: ', pos_col, 'row: ', pos_row
                 # send chessboard update message to server
                 client.send(construct_msg('update', {'col': pos_col, 'row': pos_row}))
-                # this is a blocking operation
-                echo = client.receive(True)
-                print 'echo col: ', echo['col'], 'row: ', echo['row']
 
+        # receive from the server
+        reply = client.receive(False)
+        if reply is not None:
+            print 'reply col: ', reply['col'], 'row: ', reply['row']
         # send keep alive message to the server
         client.send(construct_msg('heartbeat'))
 

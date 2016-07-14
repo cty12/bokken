@@ -5,6 +5,9 @@ from Mastermind import *
 import threading
 
 class SzsServer(MastermindServerTCP):
+    # list of client connection objects
+    connections = []
+
     def __init__(self):
         # server refresh; conn refresh; timeout
         MastermindServerTCP.__init__(self, 0.5,0.5,10.0)
@@ -16,6 +19,9 @@ class SzsServer(MastermindServerTCP):
         return super(SzsServer, self).callback_disconnect()
 
     def callback_connect_client(self, connection_object):
+        # for debug
+        print 'incoming client connection'
+        SzsServer.connections.append(connection_object)
         return super(SzsServer, self).callback_connect_client(connection_object)
 
     def callback_disconnect_client(self, connection_object):
@@ -31,7 +37,8 @@ class SzsServer(MastermindServerTCP):
         elif data[0] == 'update':
             # update chessboard
             print 'col: ', data[1]['col'], 'row: ', data[1]['row']
-            self.callback_client_send(connection_object, {'col': data[1]['col'], 'row': data[1]['row']})
+            for conn in SzsServer.connections:
+                self.callback_client_send(conn, {'col': data[1]['col'], 'row': data[1]['row']})
 
     def callback_client_send(self, connection_object, data, compression=None):
         return super(SzsServer, self).callback_client_send(connection_object, data, compression)
