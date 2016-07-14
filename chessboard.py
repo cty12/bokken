@@ -16,18 +16,15 @@ class ChessBoard:
         # set up dimesions
         self._col = col
         self._row = row
-        # set up counter variable
-        self.upd_counter = 0
         # init
         self._board = [['' for r in range(row)] for c in range(col)]
 
     def update(self, manipulate):
-        if (manipulate.col >= self.col) or \
-                (manipulate.row >= self.row) or \
+        if (manipulate.col >= self._col) or \
+                (manipulate.row >= self._row) or \
                 (manipulate.icon not in icons.keys()):
             raise ValueError
         self._board[manipulate.col][manipulate.row] = manipulate.icon
-        self.udp_counter += 1
 
     def load(self, board):
         if len(board) != col or len(board[0]) != row:
