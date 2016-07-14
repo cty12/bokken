@@ -69,6 +69,7 @@ def main():
         reply = client.receive(False)
         if reply is not None:
             print 'reply col: ', reply['col'], 'row: ', reply['row']
+            cb.update(Manipulate(reply['col'], reply['row'], 'farmer', None))
         # send keep alive message to the server
         client.send(construct_msg('heartbeat'))
 
