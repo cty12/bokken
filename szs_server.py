@@ -36,9 +36,9 @@ class SzsServer(MastermindServerTCP):
             pass
         elif data[0] == 'update':
             # update chessboard
-            print 'col: ', data[1]['col'], 'row: ', data[1]['row']
+            print 'col: ', data[1]['col'], 'row: ', data[1]['row'], 'icon: ', data[1]['icon']
             for conn in SzsServer.connections:
-                self.callback_client_send(conn, {'col': data[1]['col'], 'row': data[1]['row']})
+                self.callback_client_send(conn, data[1])
 
     def callback_client_send(self, connection_object, data, compression=None):
         return super(SzsServer, self).callback_client_send(connection_object, data, compression)

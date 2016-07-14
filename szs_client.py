@@ -1,5 +1,6 @@
 #!/usr/bin/python2.7
 
+import argparse
 from Mastermind import *
 from szs_server import SzsServer
 import pygame
@@ -16,7 +17,7 @@ def set_up():
     # define colors
     red = (255, 0, 0)
     black = (0, 0, 0)
-    global cb_color, surface, launcher_up, farmer, clock
+    global cb_color, surface, launcher_up, farmer, keymaker, clock
     cb_color = [red, black]
     surface = pygame.display.set_mode([sq * x for x in cb.size()])
     # load icons here
@@ -32,7 +33,15 @@ def construct_msg(head='heartbeat', body=None):
     # may add a timestamp here
     return (head, body)
 
-def main():
+def parse_args():
+    parser = argparse.ArgumentParser(description='SZS client. ')
+    parser.add_argument('--ip', type=str, default='127.0.0.1', dest='ipaddr', help='the IP address of the server')
+    parser.add_argument('--port', type=int, default=6317, dest='port', help='the port configuration of the server')
+    parser.add_argument('--icon', type=str, default='farmer', dest='icon', help='the icon to use')
+    args = parser.parse_args()
+    return (args.ipaddr, args.port, args.icon)
+
+def main(ipaddr, port, player_icon):
     # init
     pygame.init()
     set_up()
@@ -40,11 +49,9 @@ def main():
     # establishing connections
     global client, server
     client = MastermindClientTCP(5.0, 10.0)
-    ip = "localhost"
-    port = 6317
 
     try:
-        client.connect(ip, port)
+        client.connect(ipaddr, port)
     except MastermindError:
         print "server connection error! "
         return
@@ -63,13 +70,13 @@ def main():
                 pos_row = int(pos[1]) / int(sq)
                 print 'col: ', pos_col, 'row: ', pos_row
                 # send chessboard update message to server
-                client.send(construct_msg('update', {'col': pos_col, 'row': pos_row}))
+                client.send(construct_msg('update', {'col': pos_col, 'row': pos_row, 'icon': player_icon}))
 
         # receive from the server
         reply = client.receive(False)
         if reply is not None:
             print 'reply col: ', reply['col'], 'row: ', reply['row']
-            cb.update(Manipulate(reply['col'], reply['row'], 'farmer', None))
+            cb.update(Manipulate(reply['col'], reply['row'], reply['icon'], None))
         # send keep alive message to the server
         client.send(construct_msg('heartbeat'))
 
@@ -99,4 +106,7 @@ def main():
         clock.tick(30)
 
 if __name__ == '__main__':
-    main()
+    ipaddr, port, icon = parse_args()
+    # for debug
+    print '**CONFIG**: ', ipaddr, port, icon
+    main(ipaddr, port, icon)
