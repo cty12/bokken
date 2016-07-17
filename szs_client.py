@@ -9,15 +9,18 @@ from icons import icons
 
 def set_up():
     global cb, sq
-    # set up chess board
-    cb = ChessBoard(8, 10)
+    # load the map and set up the chessboard
+    cb = ChessBoard("maps/sample.map")
     # the size of a square in px
     sq = 80
 
     # define colors
     red = (255, 0, 0)
     black = (0, 0, 0)
-    global cb_color, surface, launcher_up, farmer, keymaker, clock
+    global cb_color, surface
+    global launcher_up, launcher_down, launcher_left, \
+        launcher_right, farmer, keymaker
+    global clock
     cb_color = [red, black]
     surface = pygame.display.set_mode([sq * x for x in cb.size()])
     # load icons here
