@@ -14,3 +14,5 @@ abbrev['R'] = 'launcher-right'
 abbrev['f'] = 'farmer'
 abbrev['k'] = 'keymaker'
 abbrev['-'] = ''
+
+launchers = ['launcher-up', 'launcher-down', 'launcher-left', 'launcher-right']

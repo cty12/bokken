@@ -5,7 +5,7 @@ from Mastermind import *
 from szs_server import SzsServer
 import pygame
 from chessboard import ChessBoard, Manipulate
-from icons import icons
+from icons import icons, launchers
 
 def set_up():
     global cb, sq
@@ -35,6 +35,34 @@ def set_up():
 def construct_msg(head='heartbeat', body=None):
     # may add a timestamp here
     return (head, body)
+
+# the all-in-one coordinate mapper for launchers
+def cb_update_handler(pos_col, pos_row):
+    pos_icon = cb.get(pos_col, pos_row)
+    if pos_icon not in launchers:
+        raise ValueError
+    ret_col, ret_row = pos_col, pos_row
+    if pos_icon == 'launcher-up':
+        while (ret_row + 1) < cb.size()[1] and \
+                cb.get(ret_col, ret_row + 1) == '':
+            ret_row += 1
+    elif pos_icon == 'launcher-down':
+        while (ret_row - 1) >= 0 and \
+                cb.get(ret_col, ret_row - 1) == '':
+            ret_row -= 1
+    elif pos_icon == 'launcher-left':
+        while (ret_col + 1) < cb.size()[0] and \
+                cb.get(ret_col + 1, ret_row) == '':
+            ret_col += 1
+    elif pos_icon == 'launcher-right':
+        while (ret_col - 1) >= 0 and \
+                cb.get(ret_col - 1, ret_row) == '':
+            ret_col -= 1
+
+    if (ret_col, ret_row) == (pos_col, pos_row):
+        raise ValueError
+    return ret_col, ret_row
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description='SZS client. ')
@@ -71,9 +99,16 @@ def main(ipaddr, port, player_icon):
                 pos = ev.dict['pos']
                 pos_col = int(pos[0]) / int(sq)
                 pos_row = int(pos[1]) / int(sq)
+                try:
+                    mapped_col, mapped_row = cb_update_handler(pos_col, pos_row)
+                except ValueError:
+                    print 'invalid pos'
+                    continue
+                # for debug
                 print 'col: ', pos_col, 'row: ', pos_row
+                print 'mapped col: ', mapped_col, 'row: ', mapped_row
                 # send chessboard update message to server
-                client.send(construct_msg('update', {'col': pos_col, 'row': pos_row, 'icon': player_icon}))
+                client.send(construct_msg('update', {'col': mapped_col, 'row': mapped_row, 'icon': player_icon}))
 
         # receive from the server
         reply = client.receive(False)
