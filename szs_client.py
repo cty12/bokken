@@ -18,8 +18,8 @@ def set_up():
     red = (255, 0, 0)
     black = (0, 0, 0)
     global cb_color, surface
-    global launcher_up, launcher_down, launcher_left, \
-        launcher_right, farmer, keymaker
+    global launcher_up, launcher_down, launcher_left, launcher_right, \
+        block, farmer, keymaker
     global clock
     cb_color = [red, black]
     surface = pygame.display.set_mode([sq * x for x in cb.size()])
@@ -28,6 +28,7 @@ def set_up():
     launcher_down = pygame.image.load(icons['launcher-down'])
     launcher_left = pygame.image.load(icons['launcher-left'])
     launcher_right = pygame.image.load(icons['launcher-right'])
+    block = pygame.image.load(icons['block'])
     farmer = pygame.image.load(icons['farmer'])
     keymaker = pygame.image.load(icons['keymaker'])
     clock = pygame.time.Clock()
@@ -140,6 +141,8 @@ def main(ipaddr, port, player_icon):
                     surface.blit(launcher_left, (sq * col, sq * row))
                 elif icon == 'launcher-right':
                     surface.blit(launcher_right, (sq * col, sq * row))
+                elif icon == 'block':
+                    surface.blit(block, (sq * col, sq * row))
         pygame.display.flip()
         clock.tick(30)
 
