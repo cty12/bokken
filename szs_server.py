@@ -46,12 +46,16 @@ class SzsServer(MastermindServerTCP):
 
     # update player index
     def _update_player_index(self):
+        # check whether there is no active client connection
+        # avoid infinite loop
+        if self._connections.get_conn_cnt() == 0:
+            return
         while True:
             self._update_idx = (self._update_idx + 1) % self._connections.get_conn_serial()
             if self._update_idx in self._connections.get_index():
-                # if the server receives a request there remain
-                # at least one client so the loop won't be infinite
                 break
+        # for debug
+        print 'next player updated to', self._update_idx
 
     def callback_connect(self):
         return super(SzsServer, self).callback_connect()
@@ -75,6 +79,8 @@ class SzsServer(MastermindServerTCP):
         print 'client disconnected'
         self._connections.remove(connection_object)
         print 'number of connections: ', self._connections.get_conn_cnt()
+        # update the player index
+        self._update_player_index()
         return super(SzsServer, self).callback_disconnect_client(connection_object)
 
     def callback_client_receive(self, connection_object):
@@ -95,8 +101,6 @@ class SzsServer(MastermindServerTCP):
                     self.callback_client_send(conn, data[1])
                 # update the player index
                 self._update_player_index()
-                # for debug
-                print 'next player updated to', self._update_idx
             else:
                 print 'It\'s', self._update_idx, 'turn, not', client_serial
 
