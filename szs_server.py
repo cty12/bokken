@@ -6,24 +6,34 @@ import threading
 
 class Connections:
     def __init__(self):
+        # key: the connection object associated with a client
+        # value: a serial number
         self._all_conn = dict()
         self._conn_serial = 0
 
     def insert(self, conn):
-        self._all_conn[self._conn_serial] = conn
+        self._all_conn[conn] = self._conn_serial
         self._conn_serial += 1
 
     def remove(self, conn):
-        for key, value in self._all_conn.iteritems():
-            if value == conn:
-                self._all_conn.pop(key)
-                break
+        self._all_conn.pop(conn)
 
-    def get_conn_objs(self):
+    # return a list of valid serial numbers
+    def get_index(self):
         return self._all_conn.values()
 
+    def get_conn_objs(self):
+        return self._all_conn.keys()
+
+    # return the number of valid client connections
     def get_conn_cnt(self):
         return len(self._all_conn.keys())
+
+    def get_conn_serial(self):
+        return self._conn_serial
+
+    def conn_to_serial(self, conn):
+        return self._all_conn[conn]
 
 class SzsServer(MastermindServerTCP):
 
@@ -32,6 +42,16 @@ class SzsServer(MastermindServerTCP):
         MastermindServerTCP.__init__(self, 0.5,0.5,10.0)
         # define the collection of all client connections
         self._connections = Connections()
+        self._update_idx = 0
+
+    # update player index
+    def _update_player_index(self):
+        while True:
+            self._update_idx = (self._update_idx + 1) % self._connections.get_conn_serial()
+            if self._update_idx in self._connections.get_index():
+                # if the server receives a request there remain
+                # at least one client so the loop won't be infinite
+                break
 
     def callback_connect(self):
         return super(SzsServer, self).callback_connect()
@@ -40,6 +60,8 @@ class SzsServer(MastermindServerTCP):
         return super(SzsServer, self).callback_disconnect()
 
     def callback_connect_client(self, connection_object):
+        # TODO when a new client connects,
+        # there should be a force chessboard sync
         # for debug
         print 'incoming client connection'
         self._connections.insert(connection_object)
@@ -47,6 +69,8 @@ class SzsServer(MastermindServerTCP):
         return super(SzsServer, self).callback_connect_client(connection_object)
 
     def callback_disconnect_client(self, connection_object):
+        # TODO when all clients are disconnected,
+        # the server settings should be reset
         # for debug
         print 'client disconnected'
         self._connections.remove(connection_object)
@@ -62,9 +86,19 @@ class SzsServer(MastermindServerTCP):
             pass
         elif data[0] == 'update':
             # update chessboard
-            print 'col: ', data[1]['col'], 'row: ', data[1]['row'], 'icon: ', data[1]['icon']
-            for conn in self._connections.get_conn_objs():
-                self.callback_client_send(conn, data[1])
+            # decide whether is the player's round
+            client_serial = self._connections.conn_to_serial(connection_object)
+            if client_serial == self._update_idx:
+                print 'col: ', data[1]['col'], 'row: ', data[1]['row'], 'icon: ', data[1]['icon']
+                # do broadcast
+                for conn in self._connections.get_conn_objs():
+                    self.callback_client_send(conn, data[1])
+                # update the player index
+                self._update_player_index()
+                # for debug
+                print 'next player updated to', self._update_idx
+            else:
+                print 'It\'s', self._update_idx, 'turn, not', client_serial
 
     def callback_client_send(self, connection_object, data, compression=None):
         return super(SzsServer, self).callback_client_send(connection_object, data, compression)
