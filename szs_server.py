@@ -35,6 +35,10 @@ class Connections:
     def conn_to_serial(self, conn):
         return self._all_conn[conn]
 
+    def reset(self):
+        self._all_conn = {}
+        self._conn_serial = 0
+
 class SzsServer(MastermindServerTCP):
 
     def __init__(self):
@@ -42,6 +46,13 @@ class SzsServer(MastermindServerTCP):
         MastermindServerTCP.__init__(self, 0.5,0.5,10.0)
         # define the collection of all client connections
         self._connections = Connections()
+        self._update_idx = 0
+
+    # reset server settings
+    def reset(self):
+        # for debug
+        print 'server settings reset'
+        self._connections.reset()
         self._update_idx = 0
 
     # update player index
@@ -73,14 +84,16 @@ class SzsServer(MastermindServerTCP):
         return super(SzsServer, self).callback_connect_client(connection_object)
 
     def callback_disconnect_client(self, connection_object):
-        # TODO when all clients are disconnected,
-        # the server settings should be reset
         # for debug
         print 'client disconnected'
         self._connections.remove(connection_object)
         print 'number of connections: ', self._connections.get_conn_cnt()
         # update the player index
         self._update_player_index()
+        # if all clients are disconnected
+        if self._connections.get_conn_cnt() == 0:
+            # reset server settings
+            self.reset()
         return super(SzsServer, self).callback_disconnect_client(connection_object)
 
     def callback_client_receive(self, connection_object):
