@@ -12,6 +12,7 @@ def set_up():
     # load the map and set up the chessboard
     cb = ChessBoard("maps/sample.map")
     # the size of a square in px
+    # TODO add config
     sq = 80
 
     # define colors
@@ -87,6 +88,8 @@ def main(ipaddr, port, player_icon):
     except MastermindError:
         print "server connection error! "
         return
+
+    # TODO initial map consensus
 
     # main ui loop
     while True:

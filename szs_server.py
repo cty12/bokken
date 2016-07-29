@@ -2,6 +2,7 @@
 
 from Mastermind import *
 
+import argparse
 import threading
 
 class Connections:
@@ -47,6 +48,7 @@ class SzsServer(MastermindServerTCP):
         # define the collection of all client connections
         self._connections = Connections()
         self._update_idx = 0
+        # TODO add map consensus
 
     # reset server settings
     def reset(self):
@@ -120,10 +122,18 @@ class SzsServer(MastermindServerTCP):
     def callback_client_send(self, connection_object, data, compression=None):
         return super(SzsServer, self).callback_client_send(connection_object, data, compression)
 
+def parse_args():
+    parser = argparse.ArgumentParser(description='SZS server. ')
+    parser.add_argument('--ip', type=str, default='127.0.0.1', dest='ipaddr', help='configuring the IP address of the network interface to use')
+    parser.add_argument('--port', type=int, default=6317, dest='port', help='configuring the port')
+    args = parser.parse_args()
+    return (args.ipaddr, args.port)
+
 if __name__ == '__main__':
     server = SzsServer()
-    ip = "localhost"
-    port = 6317
+    # parse args
+    ip, port = parse_args()
+    print 'server config: ip=', ip, 'port=', port
     # tcp connect
     server.connect(ip, port)
     try:
