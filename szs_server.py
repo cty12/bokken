@@ -48,6 +48,8 @@ class SzsServer(MastermindServerTCP):
         # define the collection of all client connections
         self._connections = Connections()
         self._update_idx = 0
+        # server metux
+        self._mutex = threading.Lock()
         # TODO add map consensus
 
     # reset server settings
@@ -79,13 +81,16 @@ class SzsServer(MastermindServerTCP):
     def callback_connect_client(self, connection_object):
         # TODO when a new client connects,
         # there should be a force chessboard sync
+        self._mutex.acquire()
         # for debug
         print 'incoming client connection'
         self._connections.insert(connection_object)
         print 'number of connections: ', self._connections.get_conn_cnt()
+        self._mutex.release()
         return super(SzsServer, self).callback_connect_client(connection_object)
 
     def callback_disconnect_client(self, connection_object):
+        self._mutex.acquire()
         # for debug
         print 'client disconnected'
         self._connections.remove(connection_object)
@@ -96,6 +101,7 @@ class SzsServer(MastermindServerTCP):
         if self._connections.get_conn_cnt() == 0:
             # reset server settings
             self.reset()
+        self._mutex.release()
         return super(SzsServer, self).callback_disconnect_client(connection_object)
 
     def callback_client_receive(self, connection_object):
@@ -107,6 +113,7 @@ class SzsServer(MastermindServerTCP):
             pass
         elif data[0] == 'update':
             # update chessboard
+            self._mutex.acquire()
             # decide whether is the player's round
             client_serial = self._connections.conn_to_serial(connection_object)
             if client_serial == self._update_idx:
@@ -118,6 +125,7 @@ class SzsServer(MastermindServerTCP):
                 self._update_player_index()
             else:
                 print 'It\'s', self._update_idx, 'turn, not', client_serial
+            self._mutex.release()
 
     def callback_client_send(self, connection_object, data, compression=None):
         return super(SzsServer, self).callback_client_send(connection_object, data, compression)
